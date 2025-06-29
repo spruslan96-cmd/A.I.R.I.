@@ -38,7 +38,6 @@ class _ModelInitBottomSheetState extends State<ModelInitBottomSheet> {
 
   void _loadModels() {
     AiHelpers.loadAvailableModels(
-      widget.llamaHelper,
       (models) {
         setState(() {
           _availableModels = models;
@@ -71,17 +70,16 @@ class _ModelInitBottomSheetState extends State<ModelInitBottomSheet> {
       nCtx: nCtx,
       nBatch: nBactch,
       nPredict: nPredit,
-      _selectedModel!,
-      widget.llamaHelper,
-      false,
-      (loading, message) {
+      modelFileName:  _selectedModel!,
+      modelLoaded: false,
+      onModelLoading: (loading, message) {
         if (loading) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message)),
           );
         }
       },
-      (error) => AiHelpers.showSnackBar(context, error),
+      onError: (error) => AiHelpers.showSnackBar(context, error),
     );
 
     widget.onModelInitialized(_selectedModel!);
