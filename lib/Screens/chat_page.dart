@@ -46,7 +46,6 @@ class _ChatPageState extends State<ChatPage> {
 
     await AiHelpers.generateText(
       prompt,
-      _llamaHelper,
       ChatHistory(),
       (response) {
         setState(() {

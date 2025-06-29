@@ -38,7 +38,6 @@ class _TalkPageState extends State<TalkPage> {
     _flutterTts = FlutterTts(); // Initialize FlutterTts
 
     AiHelpers.loadAvailableModels(
-      _llamaHelper,
       (models) {
         setState(() {});
       },
