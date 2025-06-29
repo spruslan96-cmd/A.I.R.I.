@@ -1,33 +1,20 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
-import 'package:dio/dio.dart';
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';
 import 'package:local_ai_chat/models/chat_format.dart';
 import 'package:local_ai_chat/models/chat_history.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LlamaHelper {
   bool _modelLoaded = false;
-  final ChatMLFormat _chatMLFormat = ChatMLFormat();
+
   final chatHistory = ChatHistory();
   String? modelPath;
   SendPort? _isolateSendPort;
   Isolate? _isolate;
 
-  Future<List<String>> loadAvailableModels() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final files = directory.listSync();
-    return files
-        .where((file) => file is File && file.path.endsWith('.gguf'))
-        .map((file) => file.path)
-        .toList();
-  }
-
   Future<void> loadModel(String modelFileName) async {
     if (_modelLoaded) return;
-    modelPath = await getModelPath(modelFileName);
+    modelPath = modelFileName;
     print('MODEL PATH GOT AS: $modelPath');
 
     final receivePort = ReceivePort();
@@ -175,9 +162,5 @@ Your role is to empower users by making their tasks easier, providing valuable i
 
     _isolateSendPort = null;
     _modelLoaded = false;
-  }
-
-  Future<String> getModelPath(String modelFileName) async {
-    return '$modelFileName';
   }
 }
