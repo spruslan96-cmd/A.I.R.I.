@@ -1,0 +1,2 @@
+D:/androidapp/local_ai/local_ai_chat/android/app/.cxx/RelWithDebInfo/4o712o6k/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/androidapp/local_ai/local_ai_chat/android/app/.cxx/RelWithDebInfo/4o712o6k/armeabi-v7a/CMakeFiles/rebuild_cache.dir
