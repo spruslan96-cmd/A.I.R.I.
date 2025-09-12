@@ -44,12 +44,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 🔹 Добавляем папку llama.cpp для сборки llama_cpp_dart
-      - name: Prepare llama.cpp
+      # 🔹 Создаём папку llama.cpp и скачиваем исходники
+      - name: Download llama.cpp
         run: |
-          echo "Создаём папку llama.cpp в pub-cache"
+          echo "Создаём папку для llama.cpp"
+          mkdir -p ${{ github.workspace }}/llama.cpp
+          echo "Скачиваем исходники llama.cpp"
+          git clone --depth 1 https://github.com/ggerganov/llama.cpp.git ${{ github.workspace }}/llama.cpp
+          echo "Копируем в pub-cache для llama_cpp_dart"
           mkdir -p ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
-          echo "Копируем исходники llama.cpp"
           cp -r ${{ github.workspace }}/llama.cpp/* ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp/
 
       - name: Build APK
