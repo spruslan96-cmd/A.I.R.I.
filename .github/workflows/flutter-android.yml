@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Установка Java JDK 17 (необходим для сборки Android)
+      # 2. Установка Java JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -30,17 +30,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # Обновленная версия Flutter, которая содержит совместимый Dart SDK
-          flutter-version: '3.25.0'
+        # Строка 'flutter-version' удалена. Будет установлена последняя стабильная версия.
 
-      # 4. Установка Android SDK (Правильная версия action)
+      # 4. Установка Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # Устанавливаем компоненты, необходимые для сборки, включая NDK и CMake
           packages: 'platforms;android-33 build-tools;33.0.2 ndk;25.1.8937393 cmake;3.22.1'
 
-      # 5. Кэширование зависимостей для ускорения будущих сборок
+      # 5. Кэширование зависимостей
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
@@ -57,7 +55,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      # 8. Загрузка собранного APK в артефакты GitHub
+      # 8. Загрузка собранного APK в артефакты
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
