@@ -51,9 +51,12 @@ jobs:
           ndk: 25.1.8937393
           cmake: 3.22.1
 
-      # 6️⃣ Чистим предыдущие сборки
-      - name: Clean previous builds
-        run: flutter clean
+      # 6️⃣ Чистим предыдущие сборки и кэш CMake/NDK
+      - name: Clean previous builds and CMake
+        run: |
+          flutter clean
+          rm -rf android/.cxx
+          rm -rf $HOME/.gradle/caches
 
       # 7️⃣ Устанавливаем зависимости Flutter
       - name: Install dependencies
@@ -64,17 +67,16 @@ jobs:
         run: |
           echo "Создаём папку для llama.cpp"
           mkdir -p ${{ github.workspace }}/llama.cpp
-          echo "Клонируем исходники llama.cpp"
           git clone --depth 1 https://github.com/ggerganov/llama.cpp.git ${{ github.workspace }}/llama.cpp
-          echo "Проверяем файлы"
-          ls -l ${{ github.workspace }}/llama.cpp
           echo "Копируем в pub-cache для llama_cpp_dart"
           mkdir -p ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
           cp -r ${{ github.workspace }}/llama.cpp/* ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp/
 
-      # 9️⃣ Сборка APK под ARM64
+      # 9️⃣ Сборка APK под ARM64 с отключением VFS watch
       - name: Build APK
-        run: flutter build apk --release --target-platform android-arm64 --verbose --no-tree-shake-icons
+        run: |
+          echo "org.gradle.vfs.watch=false" >> android/gradle.properties
+          flutter build apk --release --target-platform android-arm64 --verbose --no-tree-shake-icons --android-gradle-daemon=false
 
       # 🔟 Загружаем собранный APK
       - name: Upload APK artifact
