@@ -14,58 +14,56 @@ jobs:
       FLUTTER_DISABLE_ANALYTICS: true
       DART_DISABLE_ANALYTICS: true
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:$PATH
 
     steps:
-      # 1️⃣ Клонируем проект
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Устанавливаем JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3️⃣ Устанавливаем Flutter 3.35.3
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.35.3"
-          channel: "stable"
 
-      # 4️⃣ Чистим предыдущие сборки
-      - name: Clean previous builds
-        run: flutter clean
+      # Кэшируем Gradle, Flutter и llama.cpp
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle
+            ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}-llama
 
-      # 5️⃣ Устанавливаем Android SDK, NDK, CMake вручную
-      - name: Setup Android SDK & Tools
-        run: |
+      # Android SDK + инструменты
+      - run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
           cd $ANDROID_HOME/cmdline-tools
-          curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -o tools.zip
-          unzip -q tools.zip
-          rm tools.zip
-          yes | $ANDROID_HOME/cmdline-tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393" "cmake;3.22.1"
+          if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+            curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -o tools.zip
+            unzip -q tools.zip
+            rm tools.zip
+            mv cmdline-tools latest
+          fi
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393" "cmake;3.22.1"
 
-      # 6️⃣ Устанавливаем зависимости Flutter
-      - name: Install dependencies
-        run: flutter pub get
+      - run: echo "org.gradle.vfs.watch=false" >> android/gradle.properties
+      - run: flutter clean
+      - run: flutter pub get
 
-      # 7️⃣ Скачиваем llama.cpp для llama_cpp_dart
-      - name: Download llama.cpp
-        run: |
-          git clone --depth 1 https://github.com/ggerganov/llama.cpp.git llama.cpp
-          mkdir -p ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
-          cp -r llama.cpp/* ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp/
+      # llama.cpp
+      - run: |
+          if [ ! -d "${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp" ]; then
+            mkdir -p ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
+            git clone --depth 1 https://github.com/ggerganov/llama.cpp.git /tmp/llama.cpp
+            cp -r /tmp/llama.cpp/* ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp/
+          fi
 
-      # 8️⃣ Сборка APK под ARM64
-      - name: Build APK
-        run: flutter build apk --release --target-platform android-arm64
+      - run: flutter build apk --release --target-platform android-arm64
 
-      # 9️⃣ Загружаем APK
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
