@@ -50,10 +50,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 7. Исправление ошибки Gradle
-      # Этот шаг отключает файловый наблюдатель Gradle, который вызывает сбои в CI/CD
-      - name: Disable Gradle file watcher
-        run: echo "org.gradle.vfs.watch=false" >> android/gradle.properties
+      # 7. Настройка Gradle для CI (ИСПРАВЛЕНИЕ ОШИБКИ)
+      # Отключаем файловый наблюдатель и ОГРАНИЧИВАЕМ ПАМЯТЬ для Gradle
+      - name: Configure Gradle for CI
+        run: |
+          echo "org.gradle.vfs.watch=false" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m" >> android/gradle.properties
 
       # 8. Сборка APK
       - name: Build APK
