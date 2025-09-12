@@ -25,12 +25,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Установка Flutter SDK
+      # 3. Установка последней стабильной версии Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-        # Строка 'flutter-version' удалена. Будет установлена последняя стабильная версия.
 
       # 4. Установка Android SDK
       - name: Set up Android SDK
@@ -51,11 +50,16 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 7. Сборка APK
+      # 7. Исправление ошибки Gradle
+      # Этот шаг отключает файловый наблюдатель Gradle, который вызывает сбои в CI/CD
+      - name: Disable Gradle file watcher
+        run: echo "org.gradle.vfs.watch=false" >> android/gradle.properties
+
+      # 8. Сборка APK
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      # 8. Загрузка собранного APK в артефакты
+      # 9. Загрузка собранного APK в артефакты
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
