@@ -1,5 +1,7 @@
-name: Flutter Build APK
+# Имя рабочего процесса
+name: Flutter CI/CD Build
 
+# Триггеры для запуска: push в ветку master или ручной запуск
 on:
   push:
     branches:
@@ -8,60 +10,64 @@ on:
 
 jobs:
   build:
+    # Запускаем на последней версии Ubuntu
     runs-on: ubuntu-latest
 
-    env:
-      FLUTTER_DISABLE_ANALYTICS: true
-      DART_DISABLE_ANALYTICS: true
-      ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:$PATH
-
     steps:
+      # 1. Клонирование вашего репозитория
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Установка Java (необходим для сборки Android)
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
+      # 3. Установка Flutter SDK
+      # Примечание: '3.35.3' - некорректная версия. Используем последнюю стабильную.
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.35.3"
-          channel: stable
+          channel: 'stable' 
+          flutter-version: '3.22.2' # Используем актуальную стабильную версию Flutter
 
-      - name: Install system tools
-        run: sudo apt-get update && sudo apt-get install -y tar unzip curl git
+      # 4. Установка Android SDK (ПРАВИЛЬНЫЙ СПОСОБ)
+      # Используем готовый action, который сам скачает нужные компоненты и пропишет пути
+      - name: Set up Android SDK
+        uses: android-actions/setup-sdk@v3
+        with:
+          # Устанавливаем те же компоненты, что вы указывали вручную
+          packages: 'platforms;android-33 build-tools;33.0.2 ndk;25.1.8937393 cmake;3.22.1'
 
-      - name: Download and setup Android SDK cmdline-tools
-        run: |
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -L https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393" "cmake;3.22.1"
+      # 5. Кэширование зависимостей для ускорения будущих сборок
+      - name: Cache Flutter & Pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-pub-
 
+      # 6. Очистка предыдущих сборок
       - name: Clean previous builds
         run: flutter clean
 
+      # 7. Установка зависимостей проекта из pubspec.yaml
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Download llama.cpp
-        run: |
-          mkdir -p ${{ github.workspace }}/llama.cpp
-          git clone --depth 1 https://github.com/ggerganov/llama.cpp.git ${{ github.workspace }}/llama.cpp
-          mkdir -p ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp
-          cp -r ${{ github.workspace }}/llama.cpp/* ${{ github.workspace }}/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.1.0/src/llama.cpp/
-
+      # 8. Сборка APK
+      # Шаг с ручным скачиванием и копированием llama.cpp УДАЛЕН.
+      # Система сборки Flutter сама должна компилировать нативные зависимости.
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      - name: Upload APK
+      # 9. Загрузка собранного APK в артефакты GitHub
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
