@@ -1,5 +1,5 @@
 # Имя рабочего процесса
-name: Flutter CI/CD Build
+name: Сборка Flutter APK
 
 # Триггеры для запуска: push в ветку master или ручной запуск
 on:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Установка Java (необходим для сборки Android)
+      # 2. Установка Java JDK 17 (необходим для сборки Android)
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -26,47 +26,41 @@ jobs:
           java-version: '17'
 
       # 3. Установка Flutter SDK
-      # Примечание: '3.35.3' - некорректная версия. Используем последнюю стабильную.
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' 
-          flutter-version: '3.22.2' # Используем актуальную стабильную версию Flutter
+          channel: 'stable'
+          flutter-version: '3.22.2' # Актуальная стабильная версия
 
-      # 4. Установка Android SDK (ПРАВИЛЬНЫЙ СПОСОБ)
-      # Используем готовый action, который сам скачает нужные компоненты и пропишет пути
+      # 4. Установка Android SDK (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+      # Используем action с правильным названием: 'setup-android'
       - name: Set up Android SDK
-        uses: android-actions/setup-sdk@v3
+        uses: android-actions/setup-android@v3
         with:
-          # Устанавливаем те же компоненты, что вы указывали вручную
+          # Устанавливаем компоненты, необходимые для сборки, включая NDK и CMake для нативных библиотек
           packages: 'platforms;android-33 build-tools;33.0.2 ndk;25.1.8937393 cmake;3.22.1'
 
       # 5. Кэширование зависимостей для ускорения будущих сборок
-      - name: Cache Flutter & Pub dependencies
+      - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
-          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            ${{ runner.os }}-flutter-pub-
+            ${{ runner.os }}-pub-
 
-      # 6. Очистка предыдущих сборок
-      - name: Clean previous builds
-        run: flutter clean
-
-      # 7. Установка зависимостей проекта из pubspec.yaml
+      # 6. Установка зависимостей проекта
       - name: Install dependencies
         run: flutter pub get
 
-      # 8. Сборка APK
+      # 7. Сборка APK
       # Шаг с ручным скачиванием и копированием llama.cpp УДАЛЕН.
-      # Система сборки Flutter сама должна компилировать нативные зависимости.
+      # Правильно настроенный Android SDK сам справится с компиляцией нативных зависимостей.
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      # 9. Загрузка собранного APK в артефакты GitHub
+      # 8. Загрузка собранного APK в артефакты GitHub
+      # Артефакт будет доступен для скачивания на странице с результатами этого workflow.
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
