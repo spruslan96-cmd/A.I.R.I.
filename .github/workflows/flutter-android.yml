@@ -30,14 +30,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.22.2' # Актуальная стабильная версия
+          # Обновленная версия Flutter, которая содержит совместимый Dart SDK
+          flutter-version: '3.25.0'
 
-      # 4. Установка Android SDK (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-      # Используем action с правильным названием: 'setup-android'
+      # 4. Установка Android SDK (Правильная версия action)
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # Устанавливаем компоненты, необходимые для сборки, включая NDK и CMake для нативных библиотек
+          # Устанавливаем компоненты, необходимые для сборки, включая NDK и CMake
           packages: 'platforms;android-33 build-tools;33.0.2 ndk;25.1.8937393 cmake;3.22.1'
 
       # 5. Кэширование зависимостей для ускорения будущих сборок
@@ -54,13 +54,10 @@ jobs:
         run: flutter pub get
 
       # 7. Сборка APK
-      # Шаг с ручным скачиванием и копированием llama.cpp УДАЛЕН.
-      # Правильно настроенный Android SDK сам справится с компиляцией нативных зависимостей.
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm64 --verbose
 
       # 8. Загрузка собранного APK в артефакты GitHub
-      # Артефакт будет доступен для скачивания на странице с результатами этого workflow.
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
