@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-    # Запускаем на последней версии Ubuntu
     runs-on: ubuntu-latest
 
     steps:
@@ -70,23 +69,25 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
-      # 10. Сборка Release APK с записью лога (ИЗМЕНЕНО)
-      # Добавлено '|| true', чтобы шаг не останавливал workflow, даже если упадёт
+      # 10. Сборка Release APK с записью лога
+      # Эта команда попытается собрать APK и запишет ВЕСЬ вывод в файл build_log.txt
       - name: Build Release APK and capture logs
-        run: flutter build apk --release --target-platform android-arm64 --verbose > build_log.txt 2>&1 || true
+        run: flutter build apk --release --target-platform android-arm64 --verbose > build_log.txt 2>&1
+        continue-on-error: true
 
       # 11. Загрузка APK (только если сборка успешна)
       - name: Upload APK artifact if successful
-        if: success()
+        if: steps.build_step.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      # 12. Загрузка лога (только если сборка провалилась) (НОВЫЙ ШАГ)
+      # 12. Загрузка лога (только если сборка провалилась)
       - name: Upload build log on failure
-        if: failure()
+        if: steps.build_step.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build_log.txt
+          
