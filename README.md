@@ -1,4 +1,4 @@
-.# 🌬️ A.I.R.I – Artificial Intelligence, Real-Time, In-App
+уя ез.# 🌬️ A.I.R.I – Artificial Intelligence, Real-Time, In-App
 
 Welcome to **A.I.R.I**, the pocket-sized AI companion built to run powerful language models **locally on your smartphone**. Whether you want to chat or talk, A.I.R.I's got your back – no internet required! 
 
