@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      FLUTTER_DISABLE_ANALYTICS: true
+      DART_DISABLE_ANALYTICS: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,7 +20,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.13.9"
+          flutter-version: "3.19.6"
           channel: "stable"
 
       - name: Install dependencies
