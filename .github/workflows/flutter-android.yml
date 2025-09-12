@@ -50,8 +50,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      # 7. Включить MultiDex (НОВЫЙ ШАГ)
-      # Автоматически добавляем поддержку MultiDex в файл сборки
+      # 7. Включить MultiDex
       - name: Enable MultiDex
         run: |
           sed -i '/defaultConfig {/a \        multiDexEnabled true' android/app/build.gradle
@@ -62,10 +61,10 @@ jobs:
           echo "org.gradle.vfs.watch=false" >> android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx2048m" >> android/gradle.properties
 
-      # 9. Настройка подписи
+      # 9. Настройка подписи (ИСПРАВЛЕНО)
       - name: Setup Signing
         run: |
-          echo "storeFile=../app/upload-keystore.jks" > android/key.properties
+          echo "storeFile=app/upload-keystore.jks" > android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
