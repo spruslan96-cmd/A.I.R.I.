@@ -70,8 +70,8 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
       # 10. Сборка Release APK с записью лога
-      # Эта команда попытается собрать APK и запишет ВЕСЬ вывод в файл build_log.txt
       - name: Build Release APK and capture logs
+        id: build_step # <-- ДОБАВЛЕН ID
         run: flutter build apk --release --target-platform android-arm64 --verbose > build_log.txt 2>&1
         continue-on-error: true
 
