@@ -1,9 +1,10 @@
-name: Flutter Build
+name: Flutter Build APK
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,11 +30,14 @@ jobs:
           flutter-version: "3.35.3"
           channel: "stable"
 
+      - name: Clean previous builds
+        run: flutter clean
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release --verbose
+        run: flutter build apk --release --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
