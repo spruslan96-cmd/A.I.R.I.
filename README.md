@@ -1,6 +1,6 @@
 # 🌬️ A.I.R.I – Artificial Intelligence, Real-Time, In-App
 
-Welcome to **A.I.R.I**, the pocket-sized AI companion built to run powerful language models **locally on your smartphone**. Whether you want to chat or talk, A.I.R.I's got your back – no internet required! 🚀
+Welcome to **A.I.R.I**, the pocket-sized AI companion built to run powerful language models **locally on your smartphone**. Whether you want to chat or talk, A.I.R.I's got your back – no internet required! 
 
 ## 📱 What is A.I.R.I?
 A.I.R.I (**Artificial Intelligence, Real-Time, In-App**) is a sleek and responsive mobile application developed using **Flutter**. It allows users to **download and run LLM models directly on their devices**, ensuring fast and private AI conversations.
