@@ -48,19 +48,24 @@ jobs:
       # 6. Установка зависимостей проекта
       - name: Install dependencies
         run: flutter pub get
+
+      # 7. Обновление версии Kotlin (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ)
+      - name: Update Kotlin Version
+        run: |
+          sed -i "s/ext.kotlin_version = .*/ext.kotlin_version = '1.9.20'/" android/build.gradle
       
-      # 7. Включить MultiDex
+      # 8. Включить MultiDex
       - name: Enable MultiDex
         run: |
           sed -i '/defaultConfig {/a \        multiDexEnabled true' android/app/build.gradle
 
-      # 8. Настройка Gradle для CI
+      # 9. Настройка Gradle для CI
       - name: Configure Gradle for CI
         run: |
           echo "org.gradle.vfs.watch=false" >> android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx2048m" >> android/gradle.properties
 
-      # 9. Настройка подписи
+      # 10. Настройка подписи
       - name: Setup Signing
         run: |
           echo "storeFile=app/upload-keystore.jks" > android/key.properties
@@ -69,25 +74,13 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
-      # 10. Сборка Release APK с записью лога
-      - name: Build Release APK and capture logs
-        id: build_step # <-- ДОБАВЛЕН ID
-        run: flutter build apk --release --target-platform android-arm64 --verbose > build_log.txt 2>&1
-        continue-on-error: true
+      # 11. Сборка Release APK
+      - name: Build Release APK
+        run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      # 11. Загрузка APK (только если сборка успешна)
-      - name: Upload APK artifact if successful
-        if: steps.build_step.outcome == 'success'
+      # 12. Загрузка собранного APK в артефакты
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
-
-      # 12. Загрузка лога (только если сборка провалилась)
-      - name: Upload build log on failure
-        if: steps.build_step.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build_log.txt
-          
