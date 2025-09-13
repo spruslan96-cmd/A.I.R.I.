@@ -1,5 +1,5 @@
 # Имя рабочего процесса
-name: Сборка Flutter APK (Диагностика)
+name: Сборка Flutter APK
 
 # Триггеры для запуска: push в ветку master или ручной запуск
 on:
@@ -49,12 +49,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 7. Обновление конфигурации Gradle
+      # 7. Обновление конфигурации Gradle (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ)
       - name: Update Gradle Configuration
         run: |
+          # Обновляем версию Kotlin
           sed -i "s/ext.kotlin_version = .*/ext.kotlin_version = '1.9.20'/" android/build.gradle
+          # Обновляем версию Android Gradle Plugin (AGP)
           sed -i "s/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.2.0'/" android/build.gradle
+          # Обновляем версию самого Gradle
           sed -i "s|distributionUrl=.*|distributionUrl=https\\\://services.gradle.org/distributions/gradle-8.2-all.zip|" android/gradle/wrapper/gradle-wrapper.properties
+          # Отключаем дублирующую строку в app/build.gradle
+          sed -i "/flutter.gradle/s/^/\/\//g" android/app/build.gradle
       
       # 8. Включить MultiDex
       - name: Enable MultiDex
@@ -76,24 +81,14 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
-      # 11. Сборка Release APK с записью лога
-      - name: Build Release APK and capture logs
-        id: build_step
-        run: flutter build apk --release --target-platform android-arm64 --verbose > build_log.txt 2>&1
-        continue-on-error: true
+      # 11. Сборка Release APK
+      - name: Build Release APK
+        run: flutter build apk --release --target-platform android-arm64 --verbose
 
-      # 12. Загрузка APK (только если сборка успешна)
-      - name: Upload APK artifact if successful
-        if: steps.build_step.outcome == 'success'
+      # 12. Загрузка собранного APK в артефакты
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
-
-      # 13. Загрузка лога (только если сборка провалилась)
-      - name: Upload build log on failure
-        if: steps.build_step.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build_log.txt
+          
