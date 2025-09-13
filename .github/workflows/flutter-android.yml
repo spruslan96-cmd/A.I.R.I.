@@ -49,10 +49,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 7. Обновление версии Kotlin (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ)
-      - name: Update Kotlin Version
+      # 7. Обновление конфигурации Gradle (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ)
+      - name: Update Gradle Configuration
         run: |
+          # Обновляем версию Kotlin
           sed -i "s/ext.kotlin_version = .*/ext.kotlin_version = '1.9.20'/" android/build.gradle
+          # Обновляем версию Android Gradle Plugin (AGP)
+          sed -i "s/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.2.0'/" android/build.gradle
+          # Обновляем версию самого Gradle
+          sed -i "s|distributionUrl=.*|distributionUrl=https\\\://services.gradle.org/distributions/gradle-8.2-all.zip|" android/gradle/wrapper/gradle-wrapper.properties
       
       # 8. Включить MultiDex
       - name: Enable MultiDex
